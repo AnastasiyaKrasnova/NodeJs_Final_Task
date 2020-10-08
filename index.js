@@ -3,9 +3,11 @@ const app=express();
 const mongoose=require('mongoose');
 const dotenv=require('dotenv');
 const cookies = require("cookie-parser");
+const path = require('path');
 
 const authRoutes=require('./routes/auth');
-const postsRoutes=require('./routes/posts');
+const postsRoutes=require('./routes/photo');
+global.appRoot = path.resolve(__dirname);
 
 dotenv.config();
 
@@ -13,11 +15,13 @@ mongoose.connect(process.env.DB_CONNECT,
 { useNewUrlParser: true },
 ()=>console.log('Connected to db'));
 
+ 
+app.set("view engine", "hbs");
+app.use('/upload', express.static(__dirname + '/upload'));
 app.use(express.json());
-app.use(express.static('public'));
 app.use(cookies());
 app.use('/api/user',authRoutes);
-app.use('/api/posts',postsRoutes);
+app.use('/api',postsRoutes);
 
 app.listen(3000,()=>console.log("Server is running on port 3000"));
 

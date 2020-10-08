@@ -1,5 +1,6 @@
 const router=require('express').Router();
 const User=require('../models/User');
+const Photo=require('../models/Photo');
 const {registerValidation,loginValidation}=require('../validations');
 const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
@@ -48,7 +49,7 @@ router.post('/login',async (req,res)=>{
     if (!validPass) return res.status(400).send('Password is incorrect');
 
     const token=jwt.sign({_id:user._id}, process.env.TOKEN_SECRET);
-    res.cookie("token", token,{maxAge: 110000}).send(token);
+    res.cookie("token", token,{maxAge: 1100000}).send(token);
     //res.header('auth-token',token).send(token);
 
     //res.send("Logged in!!");

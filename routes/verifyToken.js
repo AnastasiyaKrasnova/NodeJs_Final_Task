@@ -1,7 +1,6 @@
 const jwt=require('jsonwebtoken');
 
-const verifyToken=(req,res,next)=>{
-    //const token=req.header('auth-token');
+module.exports=function(req,res,next){
     const token = req.cookies['token'];
     if (!token) {
         return res.status(401).send("Access denied");
@@ -16,17 +15,3 @@ const verifyToken=(req,res,next)=>{
         res.status(400).send("Invalid token");
     }
 }
-
-/*const setAuthHeader=(req,res,next)=>{
-    var options = {
-        setHeaders: function (res, path, stat) {
-          req.set('auth-token', Date.now())
-        }
-      }
-      
-      app.use(express.static('public', options))
-}*/
-
-module.exports.verifyToken=verifyToken;
-//module.exports.setAuthHeader=setAuthHeader;
-

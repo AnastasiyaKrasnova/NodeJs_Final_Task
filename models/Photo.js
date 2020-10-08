@@ -1,9 +1,8 @@
 const mongoose=require('mongoose');
 
 const photoSchema=new mongoose.Schema({
-    id:{
-        type:String,
-        required: true
+    hashtags:{
+        type: [String]
     },
     author_id:{
         type: String,

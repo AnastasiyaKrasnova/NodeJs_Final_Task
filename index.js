@@ -7,6 +7,7 @@ const path = require('path');
 
 const authRoutes=require('./routes/auth');
 const postsRoutes=require('./routes/photo');
+const commentRoutes=require('./routes/comment');
 global.appRoot = path.resolve(__dirname);
 
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use(cookies());
 app.use('/api/user',authRoutes);
 app.use('/api',postsRoutes);
+app.use('/api',commentRoutes);
 
 app.listen(3000,()=>console.log("Server is running on port 3000"));
 

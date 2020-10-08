@@ -4,8 +4,8 @@ const formidable = require('formidable');
 const verify=require('./verifyToken');
 const path = require('path');
 const photos_serv_path=path.dirname(require.main.filename)+"\\upload";
-const Photo=require('../models/Photo');
-const User=require('../models/User');
+const Photo=require('../controllers/photo');
+
 
 router.post('/photo',verify,async (req, res)=>{
         let form = new formidable.IncomingForm();
@@ -21,11 +21,11 @@ router.post('/photo',verify,async (req, res)=>{
             const temp_path = this.openedFiles[0].path;
             const file_name = this.openedFiles[0].name;
             const dir=photos_serv_path+"\\"+req.user._id;
-            const saved=await addPhototoDB(req.query.id,req.user._id,dir+"/"+file_name);
+            const saved=await Photo.add(req.user._id,dir+"/"+file_name);
             if (saved){
-               const p=await savePhoto(temp_path,file_name,dir) ;
+               const p=await Photo.saveAsFile(temp_path,file_name,dir) ;
                if(p)
-                    res.status(200).send('received upload');
+                    res.status(200).send(saved);
                 else
                     res.status(500).send('Couldnt upload file');
             }
@@ -37,7 +37,7 @@ router.post('/photo',verify,async (req, res)=>{
 });
 
 router.get('/photo',async (req, res)=>{ 
-    const user_dir=await nameToId(req.query.name);
+    const user_dir=await Photo.nameToId(req.query.name);
     if (user_dir){
         const files=fs.readdirSync(photos_serv_path+`\\${user_dir}`);
         let photos=[];
@@ -53,7 +53,7 @@ router.get('/photo',async (req, res)=>{
 
 router.delete('/photo',verify,async (req, res)=>{ 
     
-    const temp_path=await deletePhototoDB(req.query.id,req.user._id);
+    const temp_path=await Photo.delete(req.query.id,req.user._id);
             if (temp_path){
                 fs.unlink(temp_path, function(err) {
                     if (err) {
@@ -62,77 +62,24 @@ router.delete('/photo',verify,async (req, res)=>{
                         console.log("success!");
                     }
                 });
-                res.status(400).send('Successfully deleted');
+                res.status(200).send('Successfully deleted');
             }
             else{
                 res.status(400).send('Not  exist');
             }
 });
 
-async function nameToId(name){
-    const user=await User.findOne({name: name});
-    if (user)
-        return user._id;
-    else
-        return null;
-}
-
-async function addPhototoDB(id,author_id,path){
-    const idExists=await Photo.findOne({id: id});
-    if (idExists) return false;
-    const photo=new Photo({
-      id:id,
-      author_id:author_id,
-      path:path
-    });
-    try{
-        const savedPhoto=await photo.save();
-        return true;
-    }
-    catch(err) {
-        return false;
-    }
-}
-
-async function deletePhototoDB(id,author_id){
-    const photo=await Photo.findOne({id: id});
-    if (!photo) return null;
-    if (author_id==photo.author_id){
-        try{
-            const savedPhoto=await Photo.remove({id: id, author_id: author_id});
-            return photo.path;
-        }
-        catch(err) {
-            return null;
-        }
-    }
-    else
-        return null; 
-}
-
-async function savePhoto(temp_path,file_name,dir) {
-    fs.readFile(temp_path, function(err, data) {
-        console.log(dir);
-        try {
-            if (!fs.existsSync(dir)){
-                fs.mkdirSync(dir)
+router.put('/photo/hashtags',verify,async (req, res)=>{ 
+    
+    const saved=await Photo.addHashtag(req.query.id,req.user._id,req.body.hashtags);
+            if (saved){
+                res.status(200).send(saved);
             }
-        } catch (err) {
-                console.error(err);
-                return false;
-        }
-        fs.writeFile(dir+"/"+file_name, data, function(err) {
-            fs.unlink(temp_path, function(err) {
-                if (err) {
-                    console.error(err);
-                    return false;
-                    } else {
-                    console.log("success!");
-                }
-            });
-        });
-    });
-    return true;
-}
+            else{
+                res.status(400).send('Not  exist');
+            }
+});
+
+
 
 module.exports=router;
